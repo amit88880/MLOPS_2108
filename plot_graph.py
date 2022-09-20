@@ -118,7 +118,7 @@ for i in image_res_list:
         #print(cur_h_params)
 
         #PART-7: Get dev set predictions
-        pred_dev = clf.predict(X_dev), curr_dev_acc, curr_test_acc
+        pred_dev = clf.predict(X_dev)
         pred_train = clf.predict(X_train)
         pred_test = clf.predict(X_test)
 
