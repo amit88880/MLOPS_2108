@@ -58,7 +58,7 @@ n_samples = len(digits.images)
 
 
 
-img_res_ls = [1, 0.5, 1.5, 2]
+image_res_list = [1, 0.5, 1.5, 2]
 
 #best_acc, best_acc_train, best_acc_test = -1.0, -1.0, -1.0
 #best_model = None
@@ -66,9 +66,9 @@ img_res_ls = [1, 0.5, 1.5, 2]
 
 print("Image res: " + str(digits.images[0].shape))
 
-for i in img_res_ls:
+for i in image_res_list:
 
-    best_acc, best_acc_train, best_acc_test = -1.0, -1.0, -1.0
+    best_dev_acc, best_train_acc, best_test_acc = -1.0, -1.0, -1.0
     best_model = None
     best_h_params = None
     #PART-5: Define train/test/dev splits of experiment protocol
@@ -118,31 +118,30 @@ for i in img_res_ls:
         #print(cur_h_params)
 
         #PART-7: Get dev set predictions
-        predicted_dev = clf.predict(X_dev)
-        predicted_train = clf.predict(X_train)
-        predicted_test = clf.predict(X_test)
+        pred_dev = clf.predict(X_dev), curr_dev_acc, curr_test_acc
+        pred_train = clf.predict(X_train)
+        pred_test = clf.predict(X_test)
 
         # 3.Compute the accuracy on the validation set
-        cur_acc = metrics.accuracy_score(y_pred = predicted_dev, y_true=y_dev)
-        cur_acc_train = metrics.accuracy_score(y_pred = predicted_train, y_true=y_train)
-        cur_acc_test = metrics.accuracy_score(y_pred = predicted_test, y_true=y_test)
+        curr_dev_acc = metrics.accuracy_score(y_pred = pred_dev, y_true=y_dev)
+        curr_train_acc = metrics.accuracy_score(y_pred = pred_train, y_true=y_train)
+        curr_test_acc = metrics.accuracy_score(y_pred = pred_test, y_true=y_test)
 
         
-        row = [cur_h_params['gamma'], cur_h_params['C'], cur_acc_train, cur_acc, cur_acc_test]
+        row = [cur_h_params['gamma'], cur_h_params['C'], curr_train_acc, curr_dev_acc, curr_test_acc]
         ls.append(row)
 	
         # 4.Identify the best combination of hyperparameters for which validation set accuracy is highest
-       	if cur_acc > best_acc:
-            best_acc = cur_acc
+        if curr_dev_acc > best_dev_acc:
+            best_dev_acc = curr_dev_acc
             best_model = clf
             best_h_params = cur_h_params
-            #print("Current best accuracy with : " + str(best_h_params))
-            #print("New best validation accuracy :" + str(best_acc))
-        if cur_acc_train > best_acc_train:
-            best_acc_train = cur_acc_train
-        
-        if cur_acc_test > best_acc_test:
-            best_acc_test = cur_acc_test
+
+        if curr_train_acc > best_train_acc:
+            best_train_acc = curr_train_acc
+
+        if curr_test_acc > best_test_acc:
+            best_test_acc = curr_test_acc
 
 
     
@@ -152,9 +151,9 @@ for i in img_res_ls:
     
 
     print("Best hyperparameters: " + str(best_h_params))
-    print("Best train acc: " + str(best_acc_train))
-    print("Best dev acc: " + str(best_acc))
-    print("Best test acc: " + str(best_acc_test))
+    print("Best train acc: " + str(best_train_acc))
+    print("Best dev acc: " + str(best_dev_acc))
+    print("Best test acc: " + str(best_test_acc))
     print("\n")
 
 #PART-7.1: Get test set predictions
