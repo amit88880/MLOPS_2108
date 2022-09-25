@@ -1,104 +1,139 @@
-"""
-================================
-Recognizing hand-written digits
-================================
-
-This example shows how scikit-learn can be used to recognize images of
-hand-written digits, from 0-9.
-
-"""
-
-# Author: Gael Varoquaux <gael dot varoquaux at normalesup dot org>
-# License: BSD 3 clause
-
-# Standard scientific Python imports
+# PART: library dependencies: -- sklearn, tenserflow, numpy
+# import required packages
 import matplotlib.pyplot as plt
 
-# Import datasets, classifiers and performance metrics
+# import datasets, classifiers and performance metrics
 from sklearn import datasets, svm, metrics
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
-###############################################################################
-# Digits dataset
-# --------------
-#
-# The digits dataset consists of 8x8
-# pixel images of digits. The ``images`` attribute of the dataset stores
-# 8x8 arrays of grayscale values for each image. We will use these arrays to
-# visualize the first 4 images. The ``target`` attribute of the dataset stores
-# the digit each image represents and this is included in the title of the 4
-# plots below.
-#
-# Note: if we were working from image files (e.g., 'png' files), we would load
-# them using :func:`matplotlib.pyplot.imread`.
 
+def preprocess_digits(dataset):
+    # PART: data pre-processing -- to normlize data, to remove noice, formate the data to be consumed by model
+    samples = len(dataset.images)
+    data = digits.images.reshape((samples, -1))
+    label = dataset.target
+    return data, label
+
+
+# PART: sanity check visulization of data
+def viz_data(dataset):
+    _, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
+    for ax, image, label in zip(axes, digits.images, digits.target):
+        ax.set_axis_off()
+        ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
+        ax.set_title("Training: %i" % label)
+
+
+def train_test(data, label, train_frac, dev_frac, test_frac):
+    dev_test_frac = 1- train_frac
+    X_train, X_dev_test, y_train, y_dev_test = train_test_split(
+        data, label, test_size=dev_test_frac, shuffle=True
+    )
+
+
+    fraction_want = dev_frac/(dev_frac+test_frac)
+    X_test, X_dev, y_test, y_dev = train_test_split(
+        X_dev_test, y_dev_test, test_size=fraction_want, shuffle=True
+    )
+
+    return X_train, y_train, X_dev, y_dev, X_test, y_test
+
+
+def h_param_tuning(hyp_para_combo, clf, X_train, y_train, X_dev, y_dev, metric):
+    best_param = None
+    best_model = None
+    accuracy = 0
+    for curr_param in hyp_para_combo:
+        # PART: setting up hyper parameter
+        hyper_param = curr_param
+        clf.set_params(**hyper_param)
+
+        # PART: train model
+        # 2a. train the model
+        # Learn the digits on the train subset
+        clf.fit(X_train, y_train)
+
+
+        # PART: get test set pridection
+        # Predict the value of the digit on the test subset
+        curr_predicted = clf.predict(X_test)
+
+
+        # 2b. compute accuracy on validation set
+        curr_accuracy = accuracy_score(y_test, curr_predicted)
+
+        # 3. identify best set of hyper parameter for which validation set acuuracy is highest
+        if accuracy < curr_accuracy:
+            best_param = hyper_param
+            accuracy = curr_accuracy
+            best_model = clf
+            print(f"{best_param} \tAccuracy: {accuracy}")
+
+    return best_model, accuracy, best_param
+
+# 1. set the range of hyperparameters
+gamma_list  = [0.01, 0.005, 0.001, 0.0005, 0.0001]
+c_list = [0.1, 0.2, 0.5, 0.7, 1, 2, 5, 7, 10]
+
+
+# 2. for every combiation of hyper parameter values
+hyp_para_combo = [{"gamma":g, "C":c} for g in gamma_list for c in c_list]
+
+assert len(hyp_para_combo) == len(gamma_list)*len(c_list)
+
+
+
+train_frac = 0.8
+test_frac = 0.1
+dev_frac = 0.1
+
+
+# PART: -load dataset --data from files, csv, tsv, json, pickle
 digits = datasets.load_digits()
+data_viz(digits)
+data, label = preprocess_digits(digits)
 
-_, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
-for ax, image, label in zip(axes, digits.images, digits.target):
-    ax.set_axis_off()
-    ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
-    ax.set_title("Training: %i" % label)
+# housekeeping
+del digits
 
-###############################################################################
-# Classification
-# --------------
-#
-# To apply a classifier on this data, we need to flatten the images, turning
-# each 2-D array of grayscale values from shape ``(8, 8)`` into shape
-# ``(64,)``. Subsequently, the entire dataset will be of shape
-# ``(n_samples, n_features)``, where ``n_samples`` is the number of images and
-# ``n_features`` is the total number of pixels in each image.
-#
-# We can then split the data into train and test subsets and fit a support
-# vector classifier on the train samples. The fitted classifier can
-# subsequently be used to predict the value of the digit for the samples
-# in the test subset.
 
-# flatten the images
-n_samples = len(digits.images)
-data = digits.images.reshape((n_samples, -1))
 
-# Create a classifier: a support vector classifier
-clf = svm.SVC(gamma=0.001)
+# PART: define train/dev/test splite of experiment protocol
+# trin to train model
+# dev to set hyperperameter of the model
+# test to evaluate the performane of the model
 
-# Split data into 50% train and 50% test subsets
-X_train, X_test, y_train, y_test = train_test_split(
-    data, digits.target, test_size=0.5, shuffle=False
+# 80:10:10 train:dev:test
+
+
+# if testing on the same as traning set: the performance matrics may overestimate 
+# the goodness of the model. 
+# We want to test on "unseen" sample. 
+
+X_train, y_train, X_dev, y_dev, X_test, y_test = train_test(
+    data, label, train_frac, dev_frac, test_frac
 )
+  
 
-# Learn the digits on the train subset
-clf.fit(X_train, y_train)
+# PART: Define the model
+# Create a classifier: a support vector classifier
+clf = svm.SVC()
+metric = metrics.accuracy_score
+best_model, best_metric, best_param = h_param_tuning(hyp_para_combo, clf, X_train, y_train, X_dev, y_dev, metric)
+predicted = best_model.predict(X_test) 
 
-# Predict the value of the digit on the test subset
-predicted = clf.predict(X_test)
-
-###############################################################################
-# Below we visualize the first 4 test samples and show their predicted
-# digit value in the title.
-
+# PART: sanity check visulization of data
 _, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
 for ax, image, prediction in zip(axes, X_test, predicted):
     ax.set_axis_off()
     image = image.reshape(8, 8)
     ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
     ax.set_title(f"Prediction: {prediction}")
-
-###############################################################################
-# :func:`~sklearn.metrics.classification_report` builds a text report showing
-# the main classification metrics.
-
+    
+# PART: Compute evaluation Matrics.
 print(
     f"Classification report for classifier {clf}:\n"
-    f"{metrics.classification_report(y_test, predicted)}\n"
-)
+    f"{metrics.classification_report(y_test, predicted)}\n") 
 
-###############################################################################
-# We can also plot a :ref:`confusion matrix <confusion_matrix>` of the
-# true digit values and the predicted digit values.
-
-disp = metrics.ConfusionMatrixDisplay.from_predictions(y_test, predicted)
-disp.figure_.suptitle("Confusion Matrix")
-print(f"Confusion matrix:\n{disp.confusion_matrix}")
-
-plt.show()
+print(f"Best hyperparameters were: {best_param}")
