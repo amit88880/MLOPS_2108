@@ -1,6 +1,8 @@
 # PART: library dependencies: -- sklearn, tenserflow, numpy
 # import required packages
 import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
 
 # import datasets, classifiers and performance metrics
 from sklearn import datasets, svm, metrics
@@ -9,15 +11,16 @@ from sklearn.metrics import accuracy_score
 
 
 def preprocess_digits(dataset):
-    # PART: data pre-processing -- to normlize data, to remove noice, formate the data to be consumed by model
-    samples = len(dataset.images)
-    data = digits.images.reshape((samples, -1))
+    # PART: data pre-processing -- to normlize data, to remove noice,
+    #                               formate the data tobe consumed by model
+    n_samples = len(dataset.images)
+    data = digits.images.reshape((n_samples, -1))
     label = dataset.target
     return data, label
 
 
-# PART: sanity check visulization of data
 def viz_data(dataset):
+    # PART: sanity check visulization of data
     _, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
     for ax, image, label in zip(axes, digits.images, digits.target):
         ax.set_axis_off()
@@ -41,9 +44,12 @@ def train_test(data, label, train_frac, dev_frac, test_frac):
 
 
 def h_param_tuning(hyp_para_combo, clf, X_train, y_train, X_dev, y_dev, metric):
-    best_param = None
+    train_acc = []
+    test_acc = []
+    dev_acc = []
+    best_hyp_param = None
     best_model = None
-    accuracy = 0
+    best_train_acc, best_dev_acc, best_test_acc  = 0, 0, 0
     for curr_param in hyp_para_combo:
         # PART: setting up hyper parameter
         hyper_param = curr_param
@@ -57,20 +63,37 @@ def h_param_tuning(hyp_para_combo, clf, X_train, y_train, X_dev, y_dev, metric):
 
         # PART: get test set pridection
         # Predict the value of the digit on the test subset
-        curr_predicted = clf.predict(X_test)
+        train_predict = clf.predict(X_train)
+        test_predict = clf.predict(X_test)
+        dev_predict = clf.predict(X_dev)
+        # curr_predicted = clf.predict(X_test)
 
 
         # 2b. compute accuracy on validation set
-        curr_accuracy = accuracy_score(y_test, curr_predicted)
+        curr_test_accuracy = accuracy_score(y_test, test_predict)
+        curr_train_accuracy = accuracy_score(y_train, train_predict)
+        curr_dev_accuracy = accuracy_score(y_dev, dev_predict)
 
         # 3. identify best set of hyper parameter for which validation set acuuracy is highest
-        if accuracy < curr_accuracy:
-            best_param = hyper_param
-            accuracy = curr_accuracy
+        if best_train_acc < curr_train_accuracy:
+            best_hyp_param = hyper_param
+            best_train_acc = curr_train_accuracy
             best_model = clf
-            print(f"{best_param} \tAccuracy: {accuracy}")
+            print(f"{best_hyp_param} \ttrain_Accuracy: {best_train_acc}")
 
-    return best_model, accuracy, best_param
+        if best_test_acc < curr_test_accuracy:
+            best_test_acc = curr_test_accuracy
+            print(f"{best_hyp_param} \ttest_Accuracy: {best_test_acc}")
+
+        if best_dev_acc < curr_dev_accuracy:
+            best_dev_acc = curr_dev_accuracy
+            print(f"{best_hyp_param} \tdev_Accuracy: {best_dev_acc}")
+
+        train_acc.append(best_train_acc)
+        test_acc.append(best_test_acc)
+        dev_acc.append(best_dev_acc)
+
+    return best_model, best_train_acc, best_hyp_param, train_acc, test_acc, dev_acc
 
 # 1. set the range of hyperparameters
 gamma_list  = [0.01, 0.005, 0.001, 0.0005, 0.0001]
@@ -91,7 +114,7 @@ dev_frac = 0.1
 
 # PART: -load dataset --data from files, csv, tsv, json, pickle
 digits = datasets.load_digits()
-data_viz(digits)
+viz_data(digits)
 data, label = preprocess_digits(digits)
 
 # housekeeping
@@ -120,20 +143,31 @@ X_train, y_train, X_dev, y_dev, X_test, y_test = train_test(
 # Create a classifier: a support vector classifier
 clf = svm.SVC()
 metric = metrics.accuracy_score
-best_model, best_metric, best_param = h_param_tuning(hyp_para_combo, clf, X_train, y_train, X_dev, y_dev, metric)
-predicted = best_model.predict(X_test) 
+best_model, best_metric, best_hyp_param, train_acc, test_acc, dev_acc = h_param_tuning(hyp_para_combo, clf, X_train, y_train, X_dev, y_dev, metric)
+# if predicted < curr_predicted:
+#     predicted = curr_predicted
+
+predicted_test = best_model.predict(X_test) 
 
 # PART: sanity check visulization of data
 _, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
-for ax, image, prediction in zip(axes, X_test, predicted):
+for ax, image, prediction in zip(axes, X_test, predicted_test):
     ax.set_axis_off()
     image = image.reshape(8, 8)
     ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
     ax.set_title(f"Prediction: {prediction}")
-    
-# PART: Compute evaluation Matrics.
+# PART: Compute evaluation Matrics 
+# 4. report the best set accuracy with that best model.
 print(
     f"Classification report for classifier {clf}:\n"
-    f"{metrics.classification_report(y_test, predicted)}\n") 
+    f"{metrics.classification_report(y_test, predicted_test)}\n"
+) 
 
-print(f"Best hyperparameters were: {best_param}")
+print(f"Best hyperparameters were: {best_hyp_param}")
+
+
+dff = {'train_acc': train_acc, 'dev_acc': dev_acc, 'test_acc': test_acc}
+
+table = pd.DataFrame.from_dict(dff)
+
+print(table)
