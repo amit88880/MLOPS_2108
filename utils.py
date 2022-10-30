@@ -9,19 +9,19 @@ def get_all_h_params_comb(params):
     hyp_para_comb = [{"gamma":g, "C":c} for g in params['gamma'] for c in params['C']]
     return hyp_para_comb
 
-def preprocess_digits(dataset):
+def preprocess_digits(ds):
     # PART: data pre-processing -- to normlize data, to remove noice,
     #                               formate the data tobe consumed by model
-    n_samples = len(dataset.images)
-    data = dataset.images.reshape((n_samples, -1))
-    label = dataset.target
+    n_samp = len(ds.images)
+    data = ds.images.reshape((n_samp, -1))
+    label = ds.target
     return data, label
 
 
-def data_viz(dataset):
+def data_viz(ds):
     # PART: sanity check visulization of data
     _, axes = plt.subplots(nrows=1, ncols=4, figsize=(10, 3))
-    for ax, image, label in zip(axes, dataset.images, dataset.target):
+    for ax, image, label in zip(axes, ds.images, ds.target):
         ax.set_axis_off()
         ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
         ax.set_title("Training: %i" % label)
@@ -53,17 +53,17 @@ def h_param_tuning(hyp_para_combo, clf, X_train, y_train, X_dev, y_dev, metric):
 
         # PART: train model
         # 2a. train the model
-        # Learn the dataset on the train subset
+        # Learn the ds on the train subset
         clf.fit(X_train, y_train)
 
 
         # PART: get test set pridection
         # Predict the value of the digit on the test subset
-        curr_predicted = clf.predict(X_dev)
+        current_pred = clf.predict(X_dev)
 
 
         # 2b. compute accuracy on validation set
-        curr_accuracy = metric(y_dev, curr_predicted)
+        curr_accuracy = metric(y_dev, current_pred)
 
         # 3. identify best set of hyper parameter for which validation set acuuracy is highest
         if accuracy < curr_accuracy:
@@ -75,7 +75,7 @@ def h_param_tuning(hyp_para_combo, clf, X_train, y_train, X_dev, y_dev, metric):
     return best_model, accuracy, best_hyp_param
 
 
-def train_save_model(X_train, y_train, X_dev, y_dev, model_path, h_param_comb):
+def train_save_model(X_train, y_train, X_dev, y_dev, modelpath, h_param_comb):
     
 
     # PART: Define the model
@@ -83,19 +83,19 @@ def train_save_model(X_train, y_train, X_dev, y_dev, model_path, h_param_comb):
     clf = svm.SVC()
     metric = metrics.accuracy_score
     best_model, best_metric, best_hyp_param = h_param_tuning(h_param_comb, clf, X_train, y_train, X_dev, y_dev, metric)
-    # if predicted < curr_predicted:
-    #     predicted = curr_predicted
+    # if predicted < current_pred:
+    #     predicted = current_pred
 
 
     best_param_config = "_".join([h+"_"+str(best_hyp_param[h]) for h in best_hyp_param])
 
-    if model_path is None:
-        model_path = "svm_" + best_param_config + ".joblib"
+    if modelpath is None:
+        modelpath = "svm_" + best_param_config + ".joblib"
 
     dump(best_model, "svm_" + best_param_config + ".joblib")
 
 
-    return model_path, clf
+    return modelpath, clf
 
 
 

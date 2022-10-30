@@ -67,8 +67,8 @@ del digits
 # )
 
 
-svm_acc = []
-tree_acc = []
+svmac = []
+treeac = []
 
 for i in range(5):
 
@@ -78,10 +78,10 @@ for i in range(5):
 
     model_path, clf = train_save_model(X_train, y_train, X_dev, y_dev, None, h_param_comb)
     
-    tree_clf = tree.DecisionTreeClassifier()
-    tree_clf = tree_clf.fit(X_train, y_train)
+    treeclf = tree.DecisionTreeClassifier()
+    treeclf =treeclf.fit(X_train, y_train)
 
-    tree_pre = tree_clf.predict(X_test)
+    treepre =treeclf.predict(X_test)
 
 
 
@@ -101,31 +101,31 @@ for i in range(5):
         ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
         ax.set_title(f"Prediction: {prediction}")
 
-    svm_acc.append(accuracy_score(y_test, predicted))
-    tree_acc.append(accuracy_score(y_test, tree_pre))
+    svmac.append(accuracy_score(y_test, predicted))
+    treeac.append(accuracy_score(y_test,treepre))
 
 
 # PART: Compute evaluation Matrics 
 # 4. report the best set accuracy with that best model.
 
-print(f'SVM: {svm_acc}')
-print(f'TREE: {tree_acc}')
+print(f'SVM: {svmac}')
+print(f'TREE: {treeac}')
 
 
-svm_acc = np.array(svm_acc)
-tree_acc = np.array(tree_acc)
+svmac = np.array(svmac)
+treeac = np.array(treeac)
 
-svm_mean = np.mean(svm_acc)
-tree_mean = np.mean(tree_acc)
+svmmean = np.mean(svmac)
+treemean = np.mean(treeac)
 
-svm_variance = np.var(svm_acc)
-tree_variance = np.var(tree_acc)
+svm_variance = np.var(svmac)
+tree_variance = np.var(treeac)
 
-print(f"SVM Mean: {svm_mean} \t Variance: {svm_variance}")
-print(f'TREE Mean: {tree_mean} \t Variance: {tree_variance}')
+print(f"SVM Mean: {svmmean} \t Variance: {svm_variance}")
+print(f'TREE Mean: {treemean} \t Variance: {tree_variance}')
 print()
-if svm_mean > tree_mean:
-    print("svm is best")
+if svmmean > treemean:
+    print("SVM is best")
     # print(
     #     f"Classification report for classifier {clf}:\n"
     #     f"{metrics.classification_report(y_test, predicted)}\n"
@@ -134,5 +134,5 @@ if svm_mean > tree_mean:
     # print(f"Best hyperparameters were: {best_model}")
 
 else:
-    print("tree is best")
+    print("Decision tree is best")
 print()
