@@ -41,30 +41,12 @@ digits = datasets.load_digits()
 data_viz(digits)
 data, label = preprocess_digits(digits)
 
-# housekeeping
+
 del digits
 
 
 
 # PART: define train/dev/test splite of experiment protocol
-# trin to train model
-# dev to set hyperperameter of the model
-# test to evaluate the performane of the model
-
-# 80:10:10 train:dev:test
-
-
-# if testing on the same as traning set: the performance matrics may overestimate 
-# the goodness of the model. 
-# We want to test on "unseen" sample. 
-
-# X_train, y_train, X_dev, y_dev, X_test, y_test = train_dev_test_split(
-#     data, label, train_frac, dev_frac, 1 - (train_frac + dev_frac), random_state = 5
-# )
-
-# X_train, y_train, X_test, y_test = train_test_split(
-#     data, label, test_size=0.2, random_state = 5
-# )
 
 
 svmac = []
@@ -108,31 +90,56 @@ for i in range(5):
 # PART: Compute evaluation Matrics 
 # 4. report the best set accuracy with that best model.
 
-print(f'SVM: {svmac}')
-print(f'TREE: {treeac}')
+
+def display_list(svmac, treeac):
+    print(f'SVM: {svmac}')
+    print(f'TREE: {treeac}')
+    print()
+
+def create_array(acc_list):
+    return np.array(acc_list)
 
 
-svmac = np.array(svmac)
-treeac = np.array(treeac)
 
-svmmean = np.mean(svmac)
-treemean = np.mean(treeac)
+svmac = create_array(svmac)
+treeac = create_array(treeac)
+
+
+def calculate_mean(acc_array):
+    return np.mean(acc_array)
+
+
+
+svmmean = calculate_mean(svmac)
+treemean = calculate_mean(treeac)
+
+
+def calculate_var(acc_array):
+    return np.var(acc_array)
+
+
+def check_best(svmmean,treemean):
+    if svmmean > treemean:
+        print("SVM is best")
+    else:
+        print("Decision tree is best")
+    print()
 
 svm_variance = np.var(svmac)
 tree_variance = np.var(treeac)
 
-print(f"SVM Mean: {svmmean} \t Variance: {svm_variance}")
-print(f'TREE Mean: {treemean} \t Variance: {tree_variance}')
-print()
-if svmmean > treemean:
-    print("SVM is best")
-    # print(
-    #     f"Classification report for classifier {clf}:\n"
-    #     f"{metrics.classification_report(y_test, predicted)}\n"
-    # ) 
 
-    # print(f"Best hyperparameters were: {best_model}")
+def display_mean(svmmean, treemean):
+    print(f"SVM Mean: {svmmean} \t \t Tree Mean: {treemean}")
+    print()
 
-else:
-    print("Decision tree is best")
-print()
+def display_var(svm_variance, tree_variance):
+    print(f'SVM Variance: {svm_variance} \t Tree Variance: {tree_variance}')
+    print()
+
+
+
+display_list(svmac, treeac)
+display_mean(svmmean, treemean)
+display_var(svm_variance, tree_variance)
+check_best(svmmean,treemean)
