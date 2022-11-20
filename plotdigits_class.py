@@ -70,6 +70,9 @@ del digits
 svmac = []
 treeac = []
 
+model_path = None
+best_model = None
+
 def model_prediction(clfname, radnomstate):
     for i in range(5):
 
@@ -197,13 +200,28 @@ test_split_same1()
 # print(randomstate)
 
 
-
 if(clfname == 'svm'):
     print("SVM : ",svmac )
     print("SVM mean is : ",svmmean)
     print("SVM variance is : ",svm_variance)
+    
+    file_path = "./results/" + str(clfname) + ".txt"
+    file_obj = open(file_path, "w+")
+    file_obj.write("Accuracy: " + str(svmac) + "\n")
+    file_obj.write("Vriance: " + str(svm_variance) + "\n")
+    file_obj.write("Mean: " + str(svmmean) + "\n")
+    file_obj.write("Model saved at: " + str(model_path))
+    file_obj.close()
 
 elif(clfname == 'tree'):
     print("Tree : ",treeac )
     print("Tree mean is : ",treemean)
     print("Tree variance is : ",tree_variance)
+    
+    file_path = "./results/" + str(clfname) + ".txt"
+    file_obj = open(file_path, "w+")
+    file_obj.write("Accuracy: " + str(treeac) + "\n")
+    file_obj.write("Vriance: " + str(tree_variance) + "\n")
+    file_obj.write("Mean: " + str(treemean) + "\n")
+    file_obj.write("Model saved at: " + str(model_path))
+    file_obj.close()

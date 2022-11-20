@@ -1,0 +1,4 @@
+Accuracy: [0.97237569 0.97237569 0.97237569 0.97237569 0.97237569]
+Vriance: 0.0
+Mean: 0.9723756906077348
+Model saved at: results/txt
