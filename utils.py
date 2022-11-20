@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-
+from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn import svm, metrics
 from joblib import dump,load
@@ -26,20 +26,21 @@ def data_viz(ds):
         ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
         ax.set_title("Training: %i" % label)
 
-
-def train_dev_test_split(data, label, train_frac, dev_frac, test_frac):
+def train_dev_test_split(data, label, train_frac, dev_frac, test_frac,randomstate):
     dev_test_frac = 1- train_frac
     X_train, X_dev_test, y_train, y_dev_test = train_test_split(
-        data, label, test_size=dev_test_frac, shuffle=True, random_state = 5
+        data, label, test_size=dev_test_frac, shuffle=True, random_state = randomstate
     )
 
 
     fraction_want = dev_frac/(dev_frac+test_frac)
     X_test, X_dev, y_test, y_dev = train_test_split(
-        X_dev_test, y_dev_test, test_size=fraction_want, shuffle=True, random_state = 5
+        X_dev_test, y_dev_test, test_size=fraction_want, shuffle=True, random_state = randomstate
     )
 
+   
     return X_train, y_train, X_dev, y_dev, X_dev, y_dev
+
 
 
 def h_param_tuning(hyp_para_combo, clf, X_train, y_train, X_dev, y_dev, metric):
@@ -97,8 +98,56 @@ def train_save_model(X_train, y_train, X_dev, y_dev, modelpath, h_param_comb):
 
     return modelpath, clf
 
+## random state is fixed .
+##  for same test and train data.
+def test_split_same():
+    train_frac = 0.8
+    test_frac = 0.1
+    dev_frac = 0.1
+
+    # actual dataset.
+    digits = datasets.load_digits()
+    data, label = preprocess_digits(digits)
+
+    X_train1, X_test1, y_train1, y_test1 = train_test_split(
+        data, label, test_size=test_frac, shuffle=True, random_state = 150
+    )
+
+    X_train2, X_test2, y_train2, y_test2 = train_test_split(
+        data, label, test_size=test_frac, shuffle=True, random_state = 150
+    )
+
+    # checking
+    assert (X_train1 == X_train2).all()
+    assert (X_test1 == X_test2).all()
+    assert (y_train1 == y_train2).all()
+    assert (y_test1 == y_test2).all()
 
 
+    ## if random state is different.
+
+def test_split_same1():
+    train_frac = 0.7
+    test_frac = 0.15
+    dev_frac = 0.15
+
+    # actual dataset.
+    digits = datasets.load_digits()
+    data, label = preprocess_digits(digits)
+
+    X_train1, X_test1, y_train1, y_test1 = train_test_split(
+        data, label, test_size=test_frac, shuffle=True, random_state = 150
+    )
+
+    X_train2, X_test2, y_train2, y_test2 = train_test_split(
+        data, label, test_size=test_frac, shuffle=True, random_state = 150
+    )
+
+    # checking
+    assert (X_train1 == X_train2).all()
+    assert (y_train1 == y_train2).all()
+    assert (X_test1 == X_test2).all()
+    assert (y_test1 == y_test2).all()
 
 # perf_test = {}
 # for k in range(S):

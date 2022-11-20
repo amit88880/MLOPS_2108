@@ -4,7 +4,7 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 sys.path.append('.')
 from utils import get_all_h_params_comb, train_save_model, data_viz, preprocess_digits
-from plot_digits_classification import h_param
+from plotdigits_class import h_param
 from joblib import dump,load
 
 def test_get_h_param_comb():
